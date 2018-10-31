@@ -17,6 +17,13 @@ int main(int argc, char const *argv[])
     // int pos_propia = 0;
     // int turno = 1;
     int *turnos = pick_turnos();
+    int pipes[4][2];
+    
+    for(int i = 0; i < 4; i++)
+    {
+        pipe(pipes[i]);
+    }
+    
     print_tablero(mesa);
     return 0;
 }
