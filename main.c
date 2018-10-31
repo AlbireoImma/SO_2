@@ -12,18 +12,13 @@ int main(int argc, char const *argv[])
     mesa->trampas_1 = (int *)mmap(NULL,sizeof(int)*9,protection,visibility, 0, 0);
     mesa->trampas_2 = (int *)mmap(NULL,sizeof(int)*4,protection,visibility, 0, 0);
     set_tablero(mesa);
-    // int GAME_OVER = 0;
-    // int posiciones[4] = {0,0,0,0};
-    // int pos_propia = 0;
-    // int turno = 1;
-    int *turnos = pick_turnos();
+    status *estado = make_player();
+    print_estado(estado);
     int pipes[4][2];
-    
     for(int i = 0; i < 4; i++)
     {
         pipe(pipes[i]);
     }
-    
     print_tablero(mesa);
     return 0;
 }
