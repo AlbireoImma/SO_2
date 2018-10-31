@@ -4,6 +4,7 @@
 typedef struct table {
     int *trampas_1;
     int *trampas_2;
+    int invertido;
 }tablero;
 
 typedef struct juego {
@@ -133,6 +134,7 @@ void set_tablero(tablero *mesa){
     {
         mesa->trampas_2[i] = b[i];
     }
+    mesa->invertido = 0;
     return;
 }
 
@@ -171,7 +173,7 @@ void send_status(int pipes[10][2], int jugador, status *estado){
     for(int i = 0; i < 4; i++){
         aux.posiciones[i] = estado->posiciones[i];
     }
-    for(size_t i = 0; i < 4; i++){
+    for(int i = 0; i < 4; i++){
         aux.turnos[i] = estado->turnos[i];
     }
     aux.turno = estado->turno;
@@ -221,7 +223,7 @@ void copy_status(status *estado, status aux){
     for(int i = 0; i < 4; i++){
         estado->posiciones[i] = aux.posiciones[i];
     }
-    for(size_t i = 0; i < 4; i++){
+    for(int i = 0; i < 4; i++){
         estado->turnos[i] = aux.turnos[i];
     }
     estado->turno = aux.turno;
@@ -323,6 +325,50 @@ void receive_status(status *estado, int **pipes, int sender, int receiver){
 }
 
 void activate_tramp(int pos, tablero *mesa, status *estado){
+    int random = (rand()%10)+1;
+    int jugando = estado->turnos[estado->turno%4];
+    if ((random > 0) && (random <= 3)) { // Retrocede una cuadricula
+        if (pos == 1) {
+            return;
+        } else {
+            estado->posiciones[jugando-1] = estado->posiciones[jugando-1] - 1;
+            return;
+        }
+    } else if ((random > 3) && (random <= 5)) { // Los demás retroceden una
+        for(int i = 0; i < 4; i++){
+            if (estado->posiciones[i]==1) {
+                continue;
+            } else {
+                if (i+1 == jugando) {
+                    continue;
+                } else {
+                    estado->posiciones[i]=estado->posiciones[i]-1;
+                }
+            }
+        }
+        return;
+    } else if ((random > 5) && (random <= 7)) { // Cambio de posición con el ultimo lugar
+        int menor = 30;
+        int j_menor;
+        for(int i = 0; i < 4; i++){
+            if(menor > estado->posiciones[i]){
+                menor = estado->posiciones[i];
+                j_menor = i+1;
+            }
+        }
+        if (jugando == j_menor) {
+            return;
+        } else {
+            int aux = estado->posiciones[jugando];
+            estado->posiciones[jugando]=estado->posiciones[j_menor];
+            estado->posiciones[j_menor]=aux;
+            return;
+        }
+    } else if ((random > 7) && (random <= 9)) { // Cambio de posición con el primero
+        /* code */
+    } else { // Cambio sentido tablero y cambio de las trampas
+
+    }
     return;
 }
 void activate_tramp2(int pos, tablero *mesa, status *estado){
@@ -334,27 +380,43 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
     int dado = (rand()%6)+1;
     int pos_mov = estado->posiciones[jugando-1]+dado;
     estado->posiciones[jugando-1]=estado->posiciones[jugando-1]+dado;
-    
-    if (estado->posiciones[jugando-1]>=29) {
+    estado->turno = estado->turno + 1;
+    estado->last_played = jugando;
+    if (estado->posiciones[jugando-1]>=29) { // Gano
         estado->WINNER = jugando;
         estado->GAME_OVER = 1;
-        estado->last_played = jugando;
-        estado->turno = estado->turno+1;
         send_status(pipes, jugando, estado);
     } else {
         int i;
-        for(i = 0; i < 9; i++){
-            if (mesa->trampas_1[i]==pos_mov) {
-                activate_tramp(pos_mov,mesa,estado);
-                send_status(pipes, jugando, estado);
-                return;
+        if (mesa->invertido == 0) { // Tablero no invertido
+            for(i = 0; i < 9; i++){
+                if (mesa->trampas_1[i]==pos_mov) { // Trampa ?
+                    activate_tramp(pos_mov,mesa,estado);
+                    send_status(pipes, jugando, estado);
+                    return;
+                }
+            }  
+            for(i = 0; i < 4; i++){
+                if (mesa->trampas_2[i]==pos_mov) { // Trampa ??
+                    activate_tramp2(pos_mov,mesa,estado);
+                    send_status(pipes, jugando, estado);
+                    return;
+                }
             }
-        }
-        for(i = 0; i < 4; i++){
-            if (mesa->trampas_2[i]==pos_mov) {
-                activate_tramp2(pos_mov,mesa,estado);
-                send_status(pipes, jugando, estado);
-                return;
+        } else { // Tablero invertido
+            for(i = 0; i < 9; i++){
+                if (mesa->trampas_1[i]==pos_mov) { // Trampa ?? invertida
+                    activate_tramp2(pos_mov,mesa,estado);
+                    send_status(pipes, jugando, estado);
+                    return;
+                }
+            }  
+            for(i = 0; i < 4; i++){
+                if (mesa->trampas_2[i]==pos_mov) { // Trampa ? invertida
+                    activate_tramp(pos_mov,mesa,estado);
+                    send_status(pipes, jugando, estado);
+                    return;
+                }
             }
         }
     }
