@@ -322,6 +322,13 @@ void receive_status(status *estado, int **pipes, int sender, int receiver){
     }
 }
 
+void activate_tramp(int pos, tablero *mesa, status *estado){
+    return;
+}
+void activate_tramp2(int pos, tablero *mesa, status *estado){
+    return; 
+}
+
 void jugar(status *estado, int pipes[10][2],tablero *mesa){
     int jugando = estado->turnos[estado->turno%4];
     int dado = (rand()%6)+1;
@@ -334,19 +341,21 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
         estado->last_played = jugando;
         estado->turno = estado->turno+1;
         send_status(pipes, jugando, estado);
-    } else if {
-        for(int i = 0; i < 9; i++){
+    } else {
+        int i;
+        for(i = 0; i < 9; i++){
             if (mesa->trampas_1[i]==pos_mov) {
                 activate_tramp(pos_mov,mesa,estado);
+                send_status(pipes, jugando, estado);
+                return;
             }
         }
-        for(int i = 0; i < 4; i++){
+        for(i = 0; i < 4; i++){
             if (mesa->trampas_2[i]==pos_mov) {
                 activate_tramp2(pos_mov,mesa,estado);
+                send_status(pipes, jugando, estado);
+                return;
             }
         }
-        
-        
     }
-    
 }

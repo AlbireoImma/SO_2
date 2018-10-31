@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
     if ((BT1=fork()) == 0) {
         while(estado->GAME_OVER == 0){
             while(estado->turno%4 == estado->turnos[1]){
-                jugar(estado,pipes);
+                jugar(estado,pipes,mesa);
                 int jugando = estado->turnos[estado->turno%4];
                 send_status(pipes,jugando,estado);
             }
