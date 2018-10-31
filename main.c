@@ -6,7 +6,6 @@
 
 int main(int argc, char const *argv[])
 {
-    int FLAG = 0;
     int protection = PROT_READ | PROT_WRITE;
     int visibility = MAP_ANONYMOUS |MAP_SHARED;
     tablero *mesa = (tablero *)mmap(NULL,sizeof(tablero),protection,visibility, 0, 0);
@@ -16,7 +15,6 @@ int main(int argc, char const *argv[])
     status *estado = make_player();
     print_estado(estado);
     int pipes[10][2];
-    status buffer_estado;
     /* 
         Los pipes son los siguientes:
             pipes[0] -> JUG a BT1
@@ -35,8 +33,11 @@ int main(int argc, char const *argv[])
             *** WRITING ***
                 close(pipes[i][0])
                 write(pipes[i][1], objeto a enviar, size elemento)
-    */
+            *** READING ***
+                close(pipes[i][1])
+                read(pipes[i][0], readbuffer, sizeof(readbuffer))
 
+    */
     for(int i = 0; i < 10; i++)
     {
         pipe(pipes[i]);
@@ -47,7 +48,9 @@ int main(int argc, char const *argv[])
     if ((BT1=fork()) == 0) {
         while(estado->GAME_OVER == 0){
             while(estado->turno%4 == estado->turnos[1]){
-                /* code */
+                jugar(estado,pipes);
+                int jugando = estado->turnos[estado->turno%4];
+                send_status(pipes,jugando,estado);
             }
         }
         
