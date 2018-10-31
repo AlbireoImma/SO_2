@@ -10,76 +10,104 @@ typedef struct juego {
     int GAME_OVER;
     int WINNER;
     int turno;
-    int *turnos;
-    int *posiciones;
+    int turnos[4];
+    int posiciones[4];
 }status;
 
-int *pick_turnos(){
-    int *a = (int *)calloc(4,sizeof(int));
+void pick_turnos(status *estado){
     printf("Elija turno para el jugador [seleccione entre 1 y 4]: ");
-    int result = scanf("%d",&a[0]);
-    while(result == 0 || (a[0]>4 || a[0]<1)){
+    int result = scanf("%d",&estado->turnos[0]);
+    while(result == 0 || (estado->turnos[0]>4 || estado->turnos[0]<1)){
         printf("Entrada invalida, intente nuevamente: ");
-        result = scanf("%d",&a[0]);
+        result = scanf("%d",&estado->turnos[0]);
     }
-    switch (a[0])
+    switch (estado->turnos[0])
     {
         case 1:
-            a[1] = 2;
-            a[2] = 3;
-            a[3] = 4;
+            estado->turnos[1] = 2;
+            estado->turnos[2] = 3;
+            estado->turnos[3] = 4;
             break;
         case 2:
-            a[1] = 1;
-            a[2] = 3;
-            a[3] = 4;
+            estado->turnos[1] = 1;
+            estado->turnos[2] = 3;
+            estado->turnos[3] = 4;
             break;
         case 3:
-            a[1] = 1;
-            a[2] = 2;
-            a[3] = 4;
+            estado->turnos[1] = 1;
+            estado->turnos[2] = 2;
+            estado->turnos[3] = 4;
             break;
         case 4:
-            a[1] = 1;
-            a[2] = 2;
-            a[3] = 3;
+            estado->turnos[1] = 1;
+            estado->turnos[2] = 2;
+            estado->turnos[3] = 3;
             break;
         default:
             break;
     }
-    return a;
+    return;
 }
 
 status *make_player(){
-    int *aux = pick_turnos();
     status *estado = (status *)calloc(1,sizeof(status));
     estado->turno = 1;
     estado->WINNER = 0;
     estado->GAME_OVER = 0;
-    estado->turnos  = aux;
-    estado->posiciones  = (int *)calloc(4,sizeof(int));
-    for(int i = 0; i < 3; i++)
+    pick_turnos(estado);
+    for(int i = 0; i < 4; i++)
     {
-        estado->posiciones[i]=0;
+        estado->posiciones[i]=1;
     }
     return estado;
 }
 
 void print_estado(status *estado){
+    printf("--------------------------------------------------------------------------------------------------------------------------\n");
     printf("Estado Juego:%d [1:Finalizado - 0:En juego]\n",estado->GAME_OVER);
     printf("Ganador:%d [0:Desconocido]\n",estado->WINNER);
     printf("Turno actual:%d\n",estado->turno);
+    if ((estado->turno)%4 == estado->turnos[0]) {
+        printf("Jugando: Jugador\n");
+    } else if ((estado->turno)%4 == estado->turnos[1]) {
+        printf("Jugando: Bot 1\n");
+    } else if ((estado->turno)%4 == estado->turnos[2]) {
+        printf("Jugando: Bot 2\n");
+    } else if ((estado->turno)%4 == estado->turnos[3]) {
+        printf("Jugando: Bot 3\n");
+    }
     printf("Orden turnos\n");
     printf("\t[Jugador]:%d\n",estado->turnos[0]);
     printf("\t[Bot 1]:%d\n",estado->turnos[1]);
     printf("\t[Bot 2]:%d\n",estado->turnos[2]);
     printf("\t[Bot 3]:%d\n",estado->turnos[3]);
-    printf("Posiciones\n");
-    printf("\t[Jugador]:%d\n",estado->posiciones[0]);
-    printf("\t[Bot 1]:%d\n",estado->posiciones[1]);
-    printf("\t[Bot 2]:%d\n",estado->posiciones[2]);
-    printf("\t[Bot 3]:%d\n",estado->posiciones[3]);
+    printf("--------------------------------------------------------------------------------------------------------------------------\n");
     return;
+}
+
+void print_jugadores(status *estado){
+    
+    for(int i = 0; i < 4; i++)
+    {
+        if (i == 0) {
+            printf("JUG: ");
+        } else if (i == 1) {
+            printf("BT1: ");
+        } else if (i == 2) {
+            printf("BT2: ");
+        } else if (i == 3) {
+            printf("BT3: ");
+        }
+        for(int j = 0; j < 29; j++){
+            if (estado->posiciones[i]==j+1) {
+                printf("| # ");
+            } else {
+                printf("|   ");
+            }
+        }
+        printf("|\n");
+    }
+    printf("--------------------------------------------------------------------------------------------------------------------------\n");
 }
 
 void set_tablero(tablero *mesa){
@@ -104,7 +132,7 @@ void print_tablero(tablero *mesa){
     {
         
         if (i==0) {
-            printf("|BGN");
+            printf("TAB: |BGN");
             continue;
         } else if (i==28){
             printf("|");
@@ -125,4 +153,28 @@ void print_tablero(tablero *mesa){
     }
     printf("END|\n");
     return;
+}
+
+void send_status(int **pipes, int jugador, status *estado, status buffer_estado){
+    switch (jugador)
+    {
+        case 1:
+            for(int i = 0; i < 3; i++)
+            {
+                close(pipes[i][0]);
+                write()
+            }
+            break;
+        case 2:
+            /* code */
+            break;
+        case 3:
+            /* code */
+            break;
+        case 4:
+            /* code */
+            break;
+        default:
+            break;
+    }
 }
