@@ -12,6 +12,7 @@ typedef struct juego {
     int WINNER;
     int turno;
     int last_played;
+    int playing;
     int turnos[4];
     int posiciones[4];
 }status;
@@ -30,29 +31,33 @@ void pick_turnos(status *estado){
             estado->turnos[0] = 1;
             estado->turnos[1] = 2;
             estado->turnos[2] = 3;
-            estado->turnos[3] = 4;
+            estado->turnos[3] = 0;
             estado->last_played = 1;
+            estado->playing = 1;
             break;
         case 2:
             estado->turnos[0] = 2;
             estado->turnos[1] = 1;
             estado->turnos[2] = 3;
-            estado->turnos[3] = 4;
+            estado->turnos[3] = 0;
             estado->last_played = 2;
+            estado->playing = 2;
             break;
         case 3:
-            estado->turnos[0] = 2;
-            estado->turnos[1] = 3;
-            estado->turnos[2] = 1;
-            estado->turnos[3] = 4;
+            estado->turnos[0] = 3;
+            estado->turnos[1] = 1;
+            estado->turnos[2] = 2;
+            estado->turnos[3] = 0;
             estado->last_played = 2;
+            estado->playing = 2;
             break;
         case 4:
-            estado->turnos[0] = 2;
-            estado->turnos[1] = 3;
-            estado->turnos[2] = 4;
-            estado->turnos[3] = 1;
+            estado->turnos[0] = 0;
+            estado->turnos[1] = 1;
+            estado->turnos[2] = 2;
+            estado->turnos[3] = 3;
             estado->last_played = 2;
+            estado->playing = 2;
             break;
         default:
             break;
@@ -78,13 +83,13 @@ void print_estado(status *estado){
     printf("Estado Juego:%d [1:Finalizado - 0:En juego]\n",estado->GAME_OVER);
     printf("Ganador:%d [0:Desconocido]\n",estado->WINNER);
     printf("Turno actual:%d\n",estado->turno);
-    if ((estado->turno)%4 == estado->turnos[0]) {
+    if (estado->turnos[0]==estado->turno%4) {
         printf("Jugando: Jugador\n");
-    } else if ((estado->turno)%4 == estado->turnos[1]) {
+    } else if (estado->turnos[1]==estado->turno%4) {
         printf("Jugando: Bot 1\n");
-    } else if ((estado->turno)%4 == estado->turnos[2]) {
+    } else if (estado->turnos[2]==estado->turno%4) {
         printf("Jugando: Bot 2\n");
-    } else if ((estado->turno)%4 == estado->turnos[3]) {
+    } else if (estado->turnos[3]==estado->turno%4) {
         printf("Jugando: Bot 3\n");
     }
     printf("Orden turnos\n");
@@ -183,35 +188,44 @@ void send_status(int pipes[10][2], int jugador, status *estado){
     switch (jugador)
     {
         case 1:
-            for(int i = 0; i < 3; i++)
-            {
-                close(pipes[i][0]);
-                write(pipes[i][1],&aux,sizeof(estado));
-            }
+            close(pipes[2][0]);
+            write(pipes[2][1],&aux,sizeof(status));
+            close(pipes[4][0]);
+            write(pipes[4][1],&aux,sizeof(status));
+            close(pipes[6][0]);
+            write(pipes[6][1],&aux,sizeof(status));
+            close(pipes[8][0]);
+            write(pipes[8][1],&aux,sizeof(status));
             break;
         case 2:
             close(pipes[0][0]);
-            write(pipes[0][1],&aux,sizeof(estado));
-            close(pipes[3][0]);
-            write(pipes[3][1],&aux,sizeof(estado));
+            write(pipes[0][1],&aux,sizeof(status));
             close(pipes[4][0]);
-            write(pipes[4][1],&aux,sizeof(estado));
+            write(pipes[4][1],&aux,sizeof(status));
+            close(pipes[6][0]);
+            write(pipes[6][1],&aux,sizeof(status));
+            close(pipes[8][0]);
+            write(pipes[8][1],&aux,sizeof(status));
             break;
         case 3:
-            close(pipes[1][0]);
-            write(pipes[1][1],&aux,sizeof(estado));
-            close(pipes[3][0]);
-            write(pipes[3][1],&aux,sizeof(estado));
-            close(pipes[5][0]);
-            write(pipes[5][1],&aux,sizeof(estado));
+            close(pipes[0][0]);
+            write(pipes[0][1],&aux,sizeof(status));
+            close(pipes[2][0]);
+            write(pipes[2][1],&aux,sizeof(status));
+            close(pipes[6][0]);
+            write(pipes[6][1],&aux,sizeof(status));
+            close(pipes[8][0]);
+            write(pipes[8][1],&aux,sizeof(status));
             break;
         case 4:
+            close(pipes[0][0]);
+            write(pipes[0][1],&aux,sizeof(status));
             close(pipes[2][0]);
-            write(pipes[2][1],&aux,sizeof(estado));
+            write(pipes[2][1],&aux,sizeof(status));
             close(pipes[4][0]);
-            write(pipes[4][1],&aux,sizeof(estado));
-            close(pipes[5][0]);
-            write(pipes[5][1],&aux,sizeof(estado));
+            write(pipes[4][1],&aux,sizeof(status));
+            close(pipes[8][0]);
+            write(pipes[8][1],&aux,sizeof(status));
             break;
         default:
             break;
@@ -232,96 +246,11 @@ void copy_status(status *estado, status aux){
     estado->turno = aux.turno;
 }
 
-void receive_status(status *estado, int **pipes, int sender, int receiver){
+void receive_status(status *estado, int *pipes, int receiver){
     status aux;
-    switch (receiver){
-        case 1:
-            switch (sender){
-                case 2:
-                    close(pipes[0][1]);
-                    read(pipes[0][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 3:
-                    close(pipes[1][1]);
-                    read(pipes[1][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 4:
-                    close(pipes[2][1]);
-                    read(pipes[2][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case 2:
-            switch (sender){
-                case 1:
-                    close(pipes[0][1]);
-                    read(pipes[0][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 3:
-                    close(pipes[3][1]);
-                    read(pipes[3][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 4:
-                    close(pipes[4][1]);
-                    read(pipes[4][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case 3:
-            switch (sender){
-                case 1:
-                    close(pipes[1][1]);
-                    read(pipes[1][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 2:
-                    close(pipes[3][1]);
-                    read(pipes[3][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 4:
-                    close(pipes[5][1]);
-                    read(pipes[5][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case 4:
-            switch (sender){
-                case 1:
-                    close(pipes[2][1]);
-                    read(pipes[2][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 2:
-                    close(pipes[4][1]);
-                    read(pipes[4][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                case 3:
-                    close(pipes[5][1]);
-                    read(pipes[5][0],&aux,sizeof(aux));
-                    copy_status(estado,aux);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
+    close(pipes[1]);
+    read(pipes[0],&aux,sizeof(status));
+    copy_status(estado,aux);
 }
 
 void activate_tramp(int pos, tablero *mesa, status *estado){
@@ -365,11 +294,39 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
             return;
         }
     } else if ((random > 7) && (random <= 9)) { // Cambio de posición con el primero
-        /* code */
+        int mayor = 0;
+        int j_mayor;
+        for(int i = 0; i < 4; i++){
+            if(mayor < estado->posiciones[i]){
+                mayor = estado->posiciones[i];
+                j_mayor = i+1;
+            }
+        }
+        if (jugando == j_mayor) {
+            return;
+        } else {
+            int aux = estado->posiciones[jugando];
+            estado->posiciones[jugando]=estado->posiciones[j_mayor];
+            estado->posiciones[j_mayor]=aux;
+            return;
+        }
     } else { // Cambio sentido tablero y cambio de las trampas
-
+        for(int i = 0; i < 4; i++){
+            estado->posiciones[i] = 30 - estado->posiciones[i];
+        }
+        if (mesa->invertido == 0) {
+            mesa->invertido = 1;
+        } else {
+            mesa->invertido = 0;
+        }
+        for(int i = 0; i < 9; i++){
+            mesa->trampas_1[i] = 30 - mesa->trampas_1[i];
+        }
+        for(int i = 0; i < 4; i++){
+            mesa->trampas_2[i] = 30 - mesa->trampas_2[i];
+        }
+        return;
     }
-    return;
 }
 void activate_tramp2(int pos, tablero *mesa, status *estado){
     return; 
@@ -378,46 +335,50 @@ void activate_tramp2(int pos, tablero *mesa, status *estado){
 void jugar(status *estado, int pipes[10][2],tablero *mesa){
     int jugando = estado->turnos[estado->turno%4];
     int dado = (rand()%6)+1;
-    int pos_mov = estado->posiciones[jugando-1]+dado;
+    // int pos_mov = estado->posiciones[jugando-1]+dado;
     estado->posiciones[jugando-1]=estado->posiciones[jugando-1]+dado;
+    printf("Player:%d movio %d espacios\n",jugando,dado);
     estado->turno = estado->turno + 1;
     estado->last_played = jugando;
-    if (estado->posiciones[jugando-1]>=29) { // Gano
+    if (estado->posiciones[jugando-1]>=29) { // Ganó
+        printf("!!!!!!!!!!!!!!!!!!!!!");
         estado->WINNER = jugando;
         estado->GAME_OVER = 1;
         send_status(pipes, jugando, estado);
-    } else {
-        int i;
-        if (mesa->invertido == 0) { // Tablero no invertido
-            for(i = 0; i < 9; i++){
-                if (mesa->trampas_1[i]==pos_mov) { // Trampa ?
-                    activate_tramp(pos_mov,mesa,estado);
-                    send_status(pipes, jugando, estado);
-                    return;
-                }
-            }  
-            for(i = 0; i < 4; i++){
-                if (mesa->trampas_2[i]==pos_mov) { // Trampa ??
-                    activate_tramp2(pos_mov,mesa,estado);
-                    send_status(pipes, jugando, estado);
-                    return;
-                }
-            }
-        } else { // Tablero invertido
-            for(i = 0; i < 9; i++){
-                if (mesa->trampas_1[i]==pos_mov) { // Trampa ?? invertida
-                    activate_tramp2(pos_mov,mesa,estado);
-                    send_status(pipes, jugando, estado);
-                    return;
-                }
-            }  
-            for(i = 0; i < 4; i++){
-                if (mesa->trampas_2[i]==pos_mov) { // Trampa ? invertida
-                    activate_tramp(pos_mov,mesa,estado);
-                    send_status(pipes, jugando, estado);
-                    return;
-                }
-            }
-        }
     }
+    // } else {
+    //     int i;
+    //     if (mesa->invertido == 0) { // Tablero no invertido
+    //         for(i = 0; i < 9; i++){
+    //             if (mesa->trampas_1[i]==pos_mov) { // Trampa ?
+    //                 activate_tramp(pos_mov,mesa,estado);
+    //                 send_status(pipes, jugando, estado);
+    //                 return;
+    //             }
+    //         }  
+    //         for(i = 0; i < 4; i++){
+    //             if (mesa->trampas_2[i]==pos_mov) { // Trampa ??
+    //                 activate_tramp2(pos_mov,mesa,estado);
+    //                 send_status(pipes, jugando, estado);
+    //                 return;
+    //             }
+    //         }
+    //     } else { // Tablero invertido
+    //         for(i = 0; i < 9; i++){
+    //             if (mesa->trampas_1[i]==pos_mov) { // Trampa ?? invertida
+    //                 activate_tramp2(pos_mov,mesa,estado);
+    //                 send_status(pipes, jugando, estado);
+    //                 return;
+    //             }
+    //         }  
+    //         for(i = 0; i < 4; i++){
+    //             if (mesa->trampas_2[i]==pos_mov) { // Trampa ? invertida
+    //                 activate_tramp(pos_mov,mesa,estado);
+    //                 send_status(pipes, jugando, estado);
+    //                 return;
+    //             }
+    //         }
+    //     }
+    // }
+    send_status(pipes,jugando,estado);
 }

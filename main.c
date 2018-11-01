@@ -17,16 +17,16 @@ int main(int argc, char const *argv[])
     int pipes[10][2];
     /* 
         Los pipes son los siguientes:
-            pipes[0] -> JUG a BT1
-            pipes[1] -> JUG a BT2
-            pipes[2] -> JUG a BT3
-            pipes[3] -> BT1 a BT2
-            pipes[4] -> BT1 a BT3
-            pipes[5] -> BT2 a BT3
-            pipes[6] -> FAT a JUG
-            pipes[7] -> FAT a BT1
-            pipes[8] -> FAT a BT2
-            pipes[9] -> FAT a BT3
+            pipes[0] -> JUG entrada
+            pipes[1] -> JUG salida
+            pipes[2] -> BT1 entrada
+            pipes[3] -> BT1 salida
+            pipes[4] -> BT2 entrada
+            pipes[5] -> BT2 salida
+            pipes[6] -> BT3 entrada
+            pipes[7] -> BT3 salida
+            pipes[8] -> PAD entrada
+            pipes[9] -> PAD salida
         Funcionamiento de los pipes:
             pipe[i][0] -> Input side
             pipe[i][1] -> Output side
@@ -38,48 +38,46 @@ int main(int argc, char const *argv[])
                 read(pipes[i][0], readbuffer, sizeof(readbuffer))
 
     */
-    for(int i = 0; i < 10; i++)
-    {
+    for(int i = 0; i < 10; i++){
         pipe(pipes[i]);
     }
+    printf("Estado Inicial!!\n");
     print_tablero(mesa);
     print_jugadores(estado);
+    
+    for(int i = 0; i < 10; i++){
+        estado->turno += 1;
+        estado->posiciones[0] += rand()%6 + 1;
+        estado->posiciones[1] += rand()%6 + 1;
+        estado->posiciones[2] += rand()%6 + 1;
+        estado->posiciones[3] += rand()%6 + 1;
+        print_estado(estado);
+        print_tablero(mesa);
+        print_jugadores(estado);
+    }
+    
     pid_t BT1,BT2,BT3,JUG;
-    if ((BT1=fork()) == 0) {
-        while(estado->GAME_OVER == 0){
-            while(estado->turno%4 == estado->turnos[1]){
-                jugar(estado,pipes,mesa);
-                int jugando = estado->turnos[estado->turno%4];
-                send_status(pipes,jugando,estado);
-            }
-        }
-        
-    } else if ((BT2=fork()) == 0){
-        while(estado->GAME_OVER == 0){
-            while(estado->turno%4 == estado->turnos[2]){
-                /* code */
-            }
-        }
-    } else if ((BT3=fork()) == 0){
-        while(estado->GAME_OVER == 0){
-            while(estado->turno%4 == estado->turnos[3]){
-                /* code */
-            }
-        }
-    } else if((JUG=fork()) == 0){
-        while(estado->GAME_OVER == 0){
-            while(estado->turno%4 == estado->turnos[0]){
-                /* code */
-            }
-        }
+    
+    JUG = fork();
+    if (JUG == 0) { // JUGADOR
+        /* code */
     } else {
-        while(estado->GAME_OVER == 0){
-            printf("[PADRE] Juego no terminado...\n");
-            sleep(1);
-            close(pipes[6][1]);
-            read(pipes[6][0],&estado->GAME_OVER,sizeof(int));
+        BT1 = fork();
+        if (BT1 == 0) { // BOT 1
+            /* code */
+        } else {
+            BT2 = fork();
+            if (BT2 == 0) { // BOT 2
+                /* code */
+            } else {
+                BT3 = fork();
+                if (BT3 == 0) { // BOT 3
+                    /* code */
+                } else { // PADRE
+                    /* code */
+                }
+            }
         }
-        printf("[PADRE] Juego terminado\n");
     }
     return 0;
 }
