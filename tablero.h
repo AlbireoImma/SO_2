@@ -156,7 +156,7 @@ void set_tablero(tablero *mesa){
 }
 
 void print_tablero(tablero *mesa){
-    int aux_1 = 0, aux_2 =0;
+    int aux_1 = 0, aux_2 = 0;
     if(mesa->invertido == 0){
         for(int i = 0; i < 29; i++){
             if (i==0) {
@@ -180,6 +180,7 @@ void print_tablero(tablero *mesa){
             //printf(" |");
         }
     } else {
+        int FLAG = 0;
         for(int i = 0; i < 29; i++){
             if (i==0) {
                 printf("TAB: |BGN");
@@ -190,15 +191,26 @@ void print_tablero(tablero *mesa){
             } else {
                 printf("|");
             }
-            if (aux_1 < 9 && mesa->trampas_1[aux_1]==i+1) {
-                printf(" * ");
-                aux_1++;
-            } else if (aux_2 < 4 && mesa->trampas_2[aux_2]==i+1){
-                printf(" ? ");
-                aux_2++;
-            } else {
-                printf("   ");
+            for(int j = 0; j < 9; j++){
+                if (aux_1 < 9 && (mesa->trampas_1[j])==i+1) {
+                    printf(" * ");
+                    aux_1++;
+                    FLAG = 1;
+                }   
             }
+            for(int k = 0; k < 4; k++){
+                if (aux_2 < 4 && (mesa->trampas_2[k])==i+1){
+                    printf(" ? ");
+                    aux_2++;
+                    FLAG = 1;
+                }
+            }
+            if (FLAG == 0) {
+                printf("   ");
+            } else {
+                FLAG = 0;
+            }
+            
             //printf(" |");
         }
     }
@@ -355,6 +367,7 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
             return;
         }
     } else { // Cambio sentido tablero y cambio de las trampas
+        int aux;
         printf("[SYS]: Cambio sentido tablero y trampas\n");
         for(int i = 0; i < 4; i++){
             estado->posiciones[i] = 30 - estado->posiciones[i];
@@ -365,10 +378,12 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
             mesa->invertido = 0;
         }
         for(int i = 0; i < 9; i++){
-            mesa->trampas_1[i] = 30 - mesa->trampas_1[i];
+            aux = mesa->trampas_1[i];
+            mesa->trampas_1[i] = 30 - aux;
         }
         for(int i = 0; i < 4; i++){
-            mesa->trampas_2[i] = 30 - mesa->trampas_2[i];
+            aux = mesa->trampas_2[i];
+            mesa->trampas_2[i] = 30 - aux;
         }
         return;
     }
@@ -385,9 +400,14 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
             jugando = i;
         }   
     }
-    
-    switch (jugando+1)
-    {
+    if (estado->posiciones[jugando]>=29) { // Ganó
+        // printf("!!!!!!!!!! WINNER [%d] !!!!!!!!!!!",jugando+1);
+        estado->posiciones[jugando]=29;
+        estado->WINNER = jugando;
+        estado->GAME_OVER = 1;
+        return;
+    }
+    switch (jugando+1){
         case 1:
             printf("[JUG]: ");
             break;
