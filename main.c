@@ -68,7 +68,8 @@ int main(int argc, char const *argv[])
     JUG = fork();
     if (JUG == 0) { // JUGADOR
         while(estado->GAME_OVER == 0){
-            while(estado->playing == 1){
+            sleep(1);
+            while(estado->playing == 1 && estado->GAME_OVER == 0){
                 // printf("[JUG]: (PLAY) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                 jugar(estado,pipes,mesa);
                 // printf("[JUG]: (SENDING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
@@ -77,7 +78,7 @@ int main(int argc, char const *argv[])
                 print_jugadores(estado);
             }
             // printf("[JUG]: (WAITING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
-            sleep(2);
+            sleep(3);
             // printf("[JUG]: (READING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
             // receive_status(estado,pipes[0]);
         }
@@ -85,14 +86,17 @@ int main(int argc, char const *argv[])
         BT1 = fork();
         if (BT1 == 0) { // BOT 1
             while(estado->GAME_OVER == 0){
-                while(estado->playing == 2){
+                sleep(1);
+                while(estado->playing == 2 && estado->GAME_OVER == 0){
                     // printf("[BT1]: (PLAY) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                     jugar(estado,pipes,mesa);
+                    print_tablero(mesa);
+                    print_jugadores(estado);
                     // printf("[BT1]: (SENDING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                     // send_status(pipes,2,estado);
                 }
                 // printf("[BT1]: (WAITING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
-                sleep(2);
+                sleep(3);
                 // printf("[BT1]: (READING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                 // receive_status(estado,pipes[2]);
             }
@@ -100,14 +104,17 @@ int main(int argc, char const *argv[])
             BT2 = fork();
             if (BT2 == 0) { // BOT 2
                 while(estado->GAME_OVER == 0){
-                    while(estado->playing == 3){
+                    sleep(1);
+                    while(estado->playing == 3 && estado->GAME_OVER == 0){
                         // printf("[BT2]: (PLAY) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                         jugar(estado,pipes,mesa);
+                        print_tablero(mesa);
+                        print_jugadores(estado);
                         // printf("[BT2]: (SENDING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                         // send_status(pipes,3,estado);
                     }
                     // printf("[BT2]: (WAITING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
-                    sleep(2);
+                    sleep(3);
                     // printf("[BT2]: (READING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                     // receive_status(estado,pipes[4]);
                 }
@@ -115,28 +122,32 @@ int main(int argc, char const *argv[])
                 BT3 = fork();
                 if (BT3 == 0) { // BOT 3
                     while(estado->GAME_OVER == 0){
-                        while(estado->playing == 4){
+                        sleep(1);
+                        while(estado->playing == 4 && estado->GAME_OVER == 0){
                             // printf("[BT3]: (PLAY) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                             jugar(estado,pipes,mesa);
+                            print_tablero(mesa);
+                            print_jugadores(estado);
                             // printf("[BT3]: (SENDING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                             // send_status(pipes,4,estado);
                         }
                         // printf("[BT3]: (WAITING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
-                        sleep(2);
+                        sleep(3);
                         // printf("[BT3]: (READING) [T:%d] [P:%d]\n",estado->turno,estado->playing);
                         // receive_status(estado,pipes[6]);
                     }
                 } else { // PADRE
                     while(estado->GAME_OVER == 0){
                     //    printf("[PDR]: (WAITING)\n");
-                       sleep(3);
+                       sleep(4);
                     //    printf("[PDR]: (READING) [GO:%d]\n",estado->GAME_OVER);
                     //    receive_status(estado,pipes[8]);
                     //    print_tablero(mesa);
                     //    print_jugadores(estado);
                     }
                     printf("[PDR]: GAME OVER\n");
-
+                    print_tablero(mesa);
+                    print_jugadores(estado);
                 }
             }
         }
