@@ -11,7 +11,7 @@ typedef struct juego {
     int GAME_OVER;
     int WINNER;
     int turno;
-    int last_played;
+    int next;
     int playing;
     int turnos[4];
     int posiciones[4];
@@ -32,7 +32,7 @@ void pick_turnos(status *estado){
             estado->turnos[1] = 2;
             estado->turnos[2] = 3;
             estado->turnos[3] = 0;
-            estado->last_played = 1;
+            estado->next = 2;
             estado->playing = 1;
             break;
         case 2:
@@ -40,7 +40,7 @@ void pick_turnos(status *estado){
             estado->turnos[1] = 1;
             estado->turnos[2] = 3;
             estado->turnos[3] = 0;
-            estado->last_played = 2;
+            estado->next = 1;
             estado->playing = 2;
             break;
         case 3:
@@ -48,7 +48,7 @@ void pick_turnos(status *estado){
             estado->turnos[1] = 1;
             estado->turnos[2] = 2;
             estado->turnos[3] = 0;
-            estado->last_played = 2;
+            estado->next = 3;
             estado->playing = 2;
             break;
         case 4:
@@ -56,7 +56,7 @@ void pick_turnos(status *estado){
             estado->turnos[1] = 1;
             estado->turnos[2] = 2;
             estado->turnos[3] = 3;
-            estado->last_played = 2;
+            estado->next = 3;
             estado->playing = 2;
             break;
         default:
@@ -76,6 +76,18 @@ status *make_player(){
         estado->posiciones[i]=1;
     }
     return estado;
+}
+
+void set_player(status *estado){
+    estado->turno = 1;
+    estado->WINNER = 0;
+    estado->GAME_OVER = 0;
+    pick_turnos(estado);
+    for(int i = 0; i < 4; i++)
+    {
+        estado->posiciones[i]=1;
+    }
+    return;
 }
 
 void print_estado(status *estado){
@@ -145,9 +157,7 @@ void set_tablero(tablero *mesa){
 
 void print_tablero(tablero *mesa){
     int aux_1 = 0, aux_2 =0;
-    for(int i = 0; i < 29; i++)
-    {
-        
+    for(int i = 0; i < 29; i++){
         if (i==0) {
             printf("TAB: |BGN");
             continue;
@@ -173,59 +183,60 @@ void print_tablero(tablero *mesa){
 }
 
 void send_status(int pipes[10][2], int jugador, status *estado){
-    status aux;
-    aux.GAME_OVER = estado->GAME_OVER;
-    for(int i = 0; i < 4; i++){
-        aux.posiciones[i] = estado->posiciones[i];
-    }
-    for(int i = 0; i < 4; i++){
-        aux.turnos[i] = estado->turnos[i];
-    }
-    aux.turno = estado->turno;
-    aux.WINNER = estado->WINNER;
-    aux.last_played = estado->last_played;
-    aux.turno = estado->turno;
+    // status aux;
+    // aux.GAME_OVER = estado->GAME_OVER;
+    // for(int i = 0; i < 4; i++){
+    //     aux.posiciones[i] = estado->posiciones[i];
+    // }
+    // for(int i = 0; i < 4; i++){
+    //     aux.turnos[i] = estado->turnos[i];
+    // }
+    // aux.turno = estado->turno;
+    // aux.WINNER = estado->WINNER;
+    // aux.playing = estado->playing;
+    // aux.next = estado->next;
+    // aux.turno = estado->turno;
     switch (jugador)
     {
         case 1:
             close(pipes[2][0]);
-            write(pipes[2][1],&aux,sizeof(status));
+            write(pipes[2][1],estado,sizeof(status));
             close(pipes[4][0]);
-            write(pipes[4][1],&aux,sizeof(status));
+            write(pipes[4][1],estado,sizeof(status));
             close(pipes[6][0]);
-            write(pipes[6][1],&aux,sizeof(status));
+            write(pipes[6][1],estado,sizeof(status));
             close(pipes[8][0]);
-            write(pipes[8][1],&aux,sizeof(status));
+            write(pipes[8][1],estado,sizeof(status));
             break;
         case 2:
             close(pipes[0][0]);
-            write(pipes[0][1],&aux,sizeof(status));
+            write(pipes[0][1],estado,sizeof(status));
             close(pipes[4][0]);
-            write(pipes[4][1],&aux,sizeof(status));
+            write(pipes[4][1],estado,sizeof(status));
             close(pipes[6][0]);
-            write(pipes[6][1],&aux,sizeof(status));
+            write(pipes[6][1],estado,sizeof(status));
             close(pipes[8][0]);
-            write(pipes[8][1],&aux,sizeof(status));
+            write(pipes[8][1],estado,sizeof(status));
             break;
         case 3:
             close(pipes[0][0]);
-            write(pipes[0][1],&aux,sizeof(status));
+            write(pipes[0][1],estado,sizeof(status));
             close(pipes[2][0]);
-            write(pipes[2][1],&aux,sizeof(status));
+            write(pipes[2][1],estado,sizeof(status));
             close(pipes[6][0]);
-            write(pipes[6][1],&aux,sizeof(status));
+            write(pipes[6][1],estado,sizeof(status));
             close(pipes[8][0]);
-            write(pipes[8][1],&aux,sizeof(status));
+            write(pipes[8][1],estado,sizeof(status));
             break;
         case 4:
             close(pipes[0][0]);
-            write(pipes[0][1],&aux,sizeof(status));
+            write(pipes[0][1],estado,sizeof(status));
             close(pipes[2][0]);
-            write(pipes[2][1],&aux,sizeof(status));
+            write(pipes[2][1],estado,sizeof(status));
             close(pipes[4][0]);
-            write(pipes[4][1],&aux,sizeof(status));
+            write(pipes[4][1],estado,sizeof(status));
             close(pipes[8][0]);
-            write(pipes[8][1],&aux,sizeof(status));
+            write(pipes[8][1],estado,sizeof(status));
             break;
         default:
             break;
@@ -242,11 +253,10 @@ void copy_status(status *estado, status aux){
     }
     estado->turno = aux.turno;
     estado->WINNER = aux.WINNER;
-    estado->last_played = aux.last_played;
     estado->turno = aux.turno;
 }
 
-void receive_status(status *estado, int *pipes, int receiver){
+void receive_status(status *estado, int *pipes){
     status aux;
     close(pipes[1]);
     read(pipes[0],&aux,sizeof(status));
@@ -333,18 +343,43 @@ void activate_tramp2(int pos, tablero *mesa, status *estado){
 }
 
 void jugar(status *estado, int pipes[10][2],tablero *mesa){
-    int jugando = estado->turnos[estado->turno%4];
+    srand(time(0));
+    int jugando;
+    for(int i = 0; i < 4; i++){
+        if (estado->turno%4 == estado->turnos[i]) {
+            jugando = i;
+        }   
+    }
+    
+    switch (jugando+1)
+    {
+        case 1:
+            printf("[JUG]: ");
+            break;
+        case 2:
+            printf("[BT1]: ");
+            break;
+        case 3:
+            printf("[BT2]: ");
+            break;
+        case 4:
+            printf("[BT3]: ");
+            break;
+        default:
+            break;
+    }
+    
     int dado = (rand()%6)+1;
+    printf("movio {%d} espacios\n",dado);
+    estado->turno += 1;
+    estado->posiciones[jugando] += dado;
+    estado->playing = jugando+1;
+    estado->next = estado->turnos[(estado->turno%4)+1];
     // int pos_mov = estado->posiciones[jugando-1]+dado;
-    estado->posiciones[jugando-1]=estado->posiciones[jugando-1]+dado;
-    printf("Player:%d movio %d espacios\n",jugando,dado);
-    estado->turno = estado->turno + 1;
-    estado->last_played = jugando;
-    if (estado->posiciones[jugando-1]>=29) { // Ganó
-        printf("!!!!!!!!!!!!!!!!!!!!!");
+    if (estado->posiciones[jugando]>=29) { // Ganó
+        printf("!!!!!!!!!! WINNER [%d] !!!!!!!!!!!",jugando+1);
         estado->WINNER = jugando;
         estado->GAME_OVER = 1;
-        send_status(pipes, jugando, estado);
     }
     // } else {
     //     int i;
@@ -380,5 +415,4 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
     //         }
     //     }
     // }
-    send_status(pipes,jugando,estado);
 }
