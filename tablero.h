@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
+    Estructura tablero
+        trampas_1 (int *)
+            /-> Puntero hacia un arreglo que contenga las posiciones de las trampas de tipo ?.
+        trampas_2 (int *)
+            /-> Puntero hacia un arreglo que contenga las posiciones de las trampas de tipo ??.
+        invertido (int)
+            /-> Entero con valor 1 o 0 que indica si las trampas han sido invertidas, 0 en caso negativo.
+            
+*/
 typedef struct table {
     int *trampas_1;
     int *trampas_2;
@@ -15,6 +25,7 @@ typedef struct juego {
     int playing;
     int turnos[4];
     int posiciones[4];
+    int FLAG;
 }status;
 
 void pick_turnos(status *estado){
@@ -70,6 +81,7 @@ status *make_player(){
     estado->turno = 1;
     estado->WINNER = 0;
     estado->GAME_OVER = 0;
+    estado->FLAG = 0;
     pick_turnos(estado);
     for(int i = 0; i < 4; i++)
     {
@@ -114,7 +126,6 @@ void print_estado(status *estado){
 }
 
 void print_jugadores(status *estado){
-    
     for(int i = 0; i < 4; i++)
     {
         if (i == 0) {
@@ -299,7 +310,7 @@ void receive_status(status *estado, int *pipes){
     copy_status(estado,aux);
 }
 
-void activate_tramp(int pos, tablero *mesa, status *estado){
+void activate_tramp2(int pos, tablero *mesa, status *estado){
     int random = (rand()%10)+1;
     int jugando;
     for(int i = 0; i < 4; i++){
@@ -307,25 +318,41 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
             jugando = i;
         }   
     }
-    printf("[SYS]: Trampa {%d} activada por {%d}\n",random,jugando);
-    if ((random >= 1) && (random <= 3)) { // Retrocede una cuadricula
-        printf("[SYS]: Jugador {%d} retrocede una cuadricula\n",jugando);
-        if (pos == 1) {
-            return;
-        } else {
-            estado->posiciones[jugando] -= 1;
-            return;
+    printf("[SYS]: Trampa ? activada por {%d}\n",jugando);
+    if ((random >= 1) && (random <= 2)) { // Avanzar hacia la proxima cuadricula blanca 20%
+        printf("[SYS]: Jugador {%d} avanza hasta la proxima cuadricula blanca\n",jugando);
+        int FLAG = 0;
+        for(int i = 0; i < 29; i++){
+            if (estado->posiciones[jugando] < i) {
+                for(int j = 0; j < 9; j++){
+                    if (mesa->trampas_1[j]==i) {
+                        FLAG = 1;
+                    }
+                }
+                for(int k = 0; k < 4; k++){
+                    if (mesa->trampas_2[k]==i) {
+                        FLAG = 1;
+                    }
+                }
+                if (FLAG == 1) {
+                    FLAG = 0;
+                } else {
+                    estado->posiciones[jugando] = i;
+                    return;
+                }
+            }
         }
-    } else if ((random > 3) && (random <= 5)) { // Los demás retroceden una
-        printf("[SYS]: Todos excepto Jugador {%d} retroceden una cuadricula\n",jugando);
+        return;
+    } else if ((random > 2) && (random <= 5)) { // Los demás retroceden dos 30%
+        printf("[SYS]: Todos retroceden dos cuadriculas\n");
         for(int i = 0; i < 4; i++){
             if (estado->posiciones[i]==1) {
                 continue;
             } else {
-                if (i == jugando) {
-                    continue;
+                if(estado->posiciones[i]==2){
+                    estado->posiciones[i] = 1;
                 } else {
-                    estado->posiciones[i] -= 1;
+                    estado->posiciones[i] -= 2;
                 }
             }
         }
@@ -388,8 +415,60 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
         return;
     }
 }
-void activate_tramp2(int pos, tablero *mesa, status *estado){
-    return; 
+
+void activate_tramp(int pos, tablero *mesa, status *estado){
+    int random = (rand()%5)+1;
+    int jugando;
+    for(int i = 0; i < 4; i++){
+        if ((estado->turno - 1)%4 == estado->turnos[i]) {
+            jugando = i;
+        }   
+    }
+    printf("[SYS]: Trampa {%d} activada por {%d}\n",random, jugando);
+    if (random == 1) { // ? #1
+        printf("[SYS]: Jugador {%d} retrocede una cuadricula\n",jugando);
+        if (estado->posiciones[jugando]==1) {
+            return;
+        }
+        estado->posiciones[jugando] -= 1;
+        return;
+    } else if (random == 2){ // ? #2
+        printf("[SYS]: Todos excepto jugador {%d} retroceden una cuadricula\n",jugando);
+        for(int i = 0; i < 4; i++){
+            if (estado->posiciones[i]==1) {
+                continue;
+            } else {
+                if (i == jugando) {
+                    continue;
+                } else {
+                    estado->posiciones[i] -= 1;
+                }
+            }
+        }
+        return;
+    } else if (random == 3){ // ? #3
+        printf("[SYS]: Jugador {%d} avanza una cuadricula\n",jugando);
+        if (estado->posiciones[jugando]==28) {
+            estado->posiciones[jugando]=29;
+            estado->WINNER = jugando;
+            estado->GAME_OVER = 1;
+            return;
+        } else {
+            estado->posiciones[jugando] += 1;
+            return;
+        }
+    } else if (random == 4) { // ? #4
+        printf("[SYS]: Jugador {%d} pierde el turno\n",jugando+1);
+        estado->FLAG = 1;
+        return;
+    } else { // ? #5
+        printf("[SYS]: Cambio sentido de turnos\n");
+        for(int i = 0; i < 4; i++){
+            estado->turnos[i] = 3 - estado->turnos[i];
+        }
+        estado->turno -= 1;
+        return;
+    }
 }
 
 void jugar(status *estado, int pipes[10][2],tablero *mesa){
@@ -441,7 +520,17 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
                 if (mesa->trampas_1[i]==estado->posiciones[jugando]) { // Trampa ?
                     printf("[SYS]: Trampa ? activada por %d\n",jugando);
                     activate_tramp(estado->posiciones[jugando],mesa,estado);
-                    estado->playing = jugando+1;
+                    if(estado->FLAG == 1){
+                        estado->FLAG = 0;
+                        estado->turno += 1;
+                        if (jugando + 2 == 5) {
+                            estado->playing = 1;
+                        } else {
+                            estado->playing = jugando + 2;
+                        }
+                    } else {
+                        estado->playing = jugando+1;
+                    }
                     // send_status(pipes, jugando, estado);
                     return;
                 }
@@ -467,14 +556,24 @@ void jugar(status *estado, int pipes[10][2],tablero *mesa){
             }  
             for(i = 0; i < 4; i++){
                 if (mesa->trampas_2[i]==estado->posiciones[jugando]) { // Trampa ? invertida
-                    printf("[SYS]: Trampa ?? activada por %d\n",jugando);
+                    printf("[SYS]: Trampa ? activada por %d\n",jugando);
                     activate_tramp(estado->posiciones[jugando],mesa,estado);
-                    estado->playing = jugando+1;
+                    if(estado->FLAG == 1){
+                        estado->FLAG = 0;
+                        estado->turno += 1;
+                        if (jugando + 2 == 5) {
+                            estado->playing = 1;
+                        } else {
+                            estado->playing = jugando + 2;
+                        }
+                    } else {
+                        estado->playing = jugando+1;
+                    }
                     // send_status(pipes, jugando, estado);
                     return;
                 }
             }
         }
     }
-    estado->playing = jugando+1;
+    estado->playing = jugando + 1;
 }
