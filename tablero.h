@@ -208,24 +208,22 @@ void print_jugadores(status *estado){
 }
 
 /*
-    Funcion: void print_tablero(tablero *mesa)
+    Funcion: set_tablero(tablero *mesa)
         Input: puntero de tablero
-        Funcionamiento: imprime en pantalla un tablero con el inicio, trampas, cuadros blancos y final
+        Funcionamiento: inicializa un tablero en memoria dinamica con valores iniciales
         Output: -
-        Notas: Usada recurrentemente con print_jugadores() para dar una interfaz del juego
+        Notas: Se considera el tablero no invertido como inicial
 */
 
 void set_tablero(tablero *mesa){
     int a[9] = {3,5,7,13,15,22,24,26,28};
     int b[4] = {17,23,25,27};
     // Seteando trampas simples por defecto
-    for(int i = 0; i < 9; i++)
-    {
+    for(int i = 0; i < 9; i++){
         mesa->trampas_1[i]=a[i];
     }
     // Seteando trampas dobles por defecto
-    for(int i = 0; i < 4; i++)
-    {
+    for(int i = 0; i < 4; i++){
         mesa->trampas_2[i] = b[i];
     }
     mesa->invertido = 0;
@@ -303,6 +301,14 @@ void print_tablero(tablero *mesa){
     return;
 }
 
+/*
+    Funcion: void send_status(int pipes[10][2], int jugador, status *estado)
+        Input: array de pipes, entero indicando el jugador, puntero de estado con el estado actual
+        Funcionamiento: envia informacion del estado de un jugador mediante el array de pipes
+        Output: -
+        Notas: -
+*/
+
 void send_status(int pipes[10][2], int jugador, status *estado){
     // status aux;
     // aux.GAME_OVER = estado->GAME_OVER;
@@ -364,6 +370,14 @@ void send_status(int pipes[10][2], int jugador, status *estado){
     }
 }
 
+/*
+    Funcion: copy_status(status *estado, status aux)
+        Input: puntero a status y variable estatica de tipo status
+        Funcionamiento: copia la informacion del tipo estatico al puntero
+        Output: -
+        Notas: -
+*/
+
 void copy_status(status *estado, status aux){
     estado->GAME_OVER = aux.GAME_OVER;
     for(int i = 0; i < 4; i++){
@@ -377,12 +391,28 @@ void copy_status(status *estado, status aux){
     estado->turno = aux.turno;
 }
 
+/*
+    Funcion: void receive_status(status *estado, int *pipes)
+        Input: puntero a status y un pipe
+        Funcionamiento: copia la informacion del pipe al estado
+        Output: -
+        Notas: -
+*/
+
 void receive_status(status *estado, int *pipes){
     status aux;
     close(pipes[1]);
     read(pipes[0],&aux,sizeof(status));
     copy_status(estado,aux);
 }
+
+/*
+    Funcion: void activate_tramp2(int pos, tablero *mesa, status *estado)
+        Input: posicion del jugador, puntero a tablero y puntero a estado
+        Funcionamiento: se encarga de resolver las trampas de tipo ?? modificando estado y mesa segun corresponda
+        Output: -
+        Notas: Uso de aleatoriedad via rand(time(0))
+*/
 
 void activate_tramp2(int pos, tablero *mesa, status *estado){
     int random = (rand()%10)+1;
@@ -490,6 +520,14 @@ void activate_tramp2(int pos, tablero *mesa, status *estado){
     }
 }
 
+/*
+    Funcion: void activate_tramp(int pos, tablero *mesa, status *estado)
+        Input: posicion del jugador, puntero a tablero y puntero a estado
+        Funcionamiento: se encarga de resolver las trampas de tipo ? modificando estado y mesa segun corresponda
+        Output: -
+        Notas: Uso de aleatoriedad via rand(time(0))
+*/
+
 void activate_tramp(int pos, tablero *mesa, status *estado){
     int random = (rand()%5)+1;
     int jugando;
@@ -544,6 +582,14 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
         return;
     }
 }
+
+/*
+    Funcion: void jugar(status *estado, int pipes[10][2],tablero *mesa)
+        Input: puntero a estado, array de pipes y puntero a tablero
+        Funcionamiento: motor del juego se encarga de mover las piezas y derivar hacia las trampas segun corresponda
+        Output: -
+        Notas:
+*/
 
 void jugar(status *estado, int pipes[10][2],tablero *mesa){
     srand(time(0));
