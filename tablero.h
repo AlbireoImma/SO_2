@@ -48,8 +48,6 @@ typedef struct juego {
     int FLAG;
 }status;
 
-
-
 /*
     Funcion: void pick_turnos(status *estado)
         Input: recibe un puntero status a modificar
@@ -106,6 +104,14 @@ void pick_turnos(status *estado){
     return;
 }
 
+/*
+    Funcion: status *make_player()
+        Input: -
+        Funcionamiento: Aloja un status en memoria dinámica y lo setea a condiciones iniciales
+        Output: puntero de status con valores iniciales
+        Notas: hace uso de pick_turnos para iniciar el array turnos como los valores playing y next
+*/
+
 status *make_player(){
     status *estado = (status *)calloc(1,sizeof(status));
     estado->turno = 1;
@@ -120,17 +126,32 @@ status *make_player(){
     return estado;
 }
 
+/*
+    Funcion: void set_player(status *estado)
+        Input: puntero de status
+        Funcionamiento: Modifica un status en memoria dinámica y lo setea a condiciones iniciales
+        Output: -
+        Notas: similar a make_player pero no crea el arreglo solo lo modifica
+*/
+
 void set_player(status *estado){
     estado->turno = 1;
     estado->WINNER = 0;
     estado->GAME_OVER = 0;
     pick_turnos(estado);
-    for(int i = 0; i < 4; i++)
-    {
+    for(int i = 0; i < 4; i++){
         estado->posiciones[i]=1;
     }
     return;
 }
+
+/*
+    Funcion: print_estado(status *estado)
+        Input: puntero de status
+        Funcionamiento: imprime en pantalla el estado actual de la estrutura status dada en el input
+        Output: -
+        Notas: Util para hacer tracking de las variables de la estructura en tiempo de ejecución
+*/
 
 void print_estado(status *estado){
     printf("--------------------------------------------------------------------------------------------------------------------------\n");
@@ -155,9 +176,16 @@ void print_estado(status *estado){
     return;
 }
 
+/*
+    Funcion: void print_jugadores(status *estado)
+        Input: puntero de status
+        Funcionamiento: imprime en pantalla los tableros de los jugadores y la posición en que se encuentran
+        Output: -
+        Notas: Usada recurrentemente con print_tablero() para dar una interfaz del juego
+*/
+
 void print_jugadores(status *estado){
-    for(int i = 0; i < 4; i++)
-    {
+    for(int i = 0; i < 4; i++){
         if (i == 0) {
             printf("JUG: ");
         } else if (i == 1) {
@@ -179,6 +207,14 @@ void print_jugadores(status *estado){
     printf("--------------------------------------------------------------------------------------------------------------------------\n");
 }
 
+/*
+    Funcion: void print_tablero(tablero *mesa)
+        Input: puntero de tablero
+        Funcionamiento: imprime en pantalla un tablero con el inicio, trampas, cuadros blancos y final
+        Output: -
+        Notas: Usada recurrentemente con print_jugadores() para dar una interfaz del juego
+*/
+
 void set_tablero(tablero *mesa){
     int a[9] = {3,5,7,13,15,22,24,26,28};
     int b[4] = {17,23,25,27};
@@ -195,6 +231,14 @@ void set_tablero(tablero *mesa){
     mesa->invertido = 0;
     return;
 }
+
+/*
+    Funcion: void print_tablero(tablero *mesa)
+        Input: puntero de tablero
+        Funcionamiento: imprime en pantalla un tablero con el inicio, trampas, cuadros blancos y final
+        Output: -
+        Notas: Usada recurrentemente con print_jugadores() para dar una interfaz del juego
+*/
 
 void print_tablero(tablero *mesa){
     int aux_1 = 0, aux_2 = 0;
