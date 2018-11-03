@@ -17,6 +17,26 @@ typedef struct table {
     int invertido;
 }tablero;
 
+/*
+    Estructura status
+        GAME_OVER (int)
+            /-> Entero que indica el final de la partida, la partida sigue en marcha con valor 0.
+        WINNER (int)
+            /-> Entero que indica el jugador ganador de la partida en caso del termino de esta.
+        turno (int)
+            /-> Entero que indica el turno actual de la partida.
+        next (int)
+            /-> Entero que indica el jugador siguiente a tomar su turno.
+        playing
+            /-> Entero que indica al jugador que actualmente esta en juego.
+        turnos (int [4])
+            /-> Arreglo de 4 enteros que indica el orden de turnos de los jugadores.
+        posiciones (int [4])
+            /-> Arreglo de 4 enteros que indica las posiciones de los jugadores en el tablero.
+        FLAG (int)
+            /-> Entero que indica que un turno debe ser saltado, manejado por la funcion jugar().
+*/
+
 typedef struct juego {
     int GAME_OVER;
     int WINNER;
@@ -27,6 +47,16 @@ typedef struct juego {
     int posiciones[4];
     int FLAG;
 }status;
+
+
+
+/*
+    Funcion: void pick_turnos(status *estado)
+        Input: recibe un puntero status a modificar
+        Funcionamiento: mediante entrada del usuario se determina el array turnos y los valores next y playing
+        Output: -
+        Notas: no contempla el error de ingresar otra cosa distinta de numeros
+*/
 
 void pick_turnos(status *estado){
     int aux;
