@@ -48,6 +48,14 @@ typedef struct juego {
     int FLAG;
 }status;
 
+/*
+	Funcion: char *get_jug(int jugando)
+		Input: entero indicando al jugador
+		Funcionamiento: mediante entrada determina el jugador
+		Output: un array de chars que representan al jugador actual
+		Notas: no contempla el error de ingresar otra cosa distinta de numeros
+*/
+
 char *get_jug(int jugando){
     switch (jugando+1){
         case 1:
@@ -589,7 +597,7 @@ void activate_tramp(int pos, tablero *mesa, status *estado){
             return;
         }
     } else if (random == 4) { // ? #4
-        printf("[SYS]: Siguinete jugador pierde el turno\n");
+        printf("[SYS]: Siguiente jugador pierde el turno\n");
         estado->FLAG = 1;
         return;
     } else { // ? #5
